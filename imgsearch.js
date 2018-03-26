@@ -13,6 +13,7 @@ const cseURL = 'https://www.googleapis.com/customsearch/v1'
 const cx = '&cx=009512028575894100740:rcixtm-hojw'
 const qParam = '&q='
 const imgSearchType = '&searchType=image'
+const filterFields = '&fields=items(title,link,displayLink,snippet)'
 
 //local config
 const dbName = 'imgsearches'
@@ -28,16 +29,23 @@ MongoClient.connect(dbUri, (err,client) => {
   })
 
   app.get('/api/imagesearch/:userQuery', (req,res) => {
-
-    let encodedCseUrl = (cseURL + apiKey + cx + imgSearchType + qParam + encodeURIComponent(req.params.userQuery) )
-    console.log(encodedCseUrl)
+    let abstractList
+    let encodedCseUrl = (cseURL + apiKey + cx + imgSearchType + filterFields + qParam +  encodeURIComponent(req.params.userQuery) )
     fetch(encodedCseUrl).then( (response) => {
       return response.json()
     }).then((response) => {
       console.log(response)
+      abstractList = response
+      console.log(abstractList)
+      let answer = JSON.stringify(abstractList, null, 2)
+      console.log(answer)
+      res.set('content-type','text/plain')
+      res.send(answer) 
+      //res.end(answer)
+    }).catch((error) => {
+      console.log(error)
     })
 
-    res.send('<h2>Find images!</h2>' + req.params.userQuery)
   })
 
   app.get('/api/latest/imagesearch/', (req,res) => {
