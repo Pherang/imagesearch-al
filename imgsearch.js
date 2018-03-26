@@ -12,6 +12,7 @@ const apiKey = '?key=AIzaSyCmT28HdQ5rFGu2lmO9NLpcoB_fCf7zJRU'
 const cseURL = 'https://www.googleapis.com/customsearch/v1'
 const cx = '&cx=009512028575894100740:rcixtm-hojw'
 const qParam = '&q='
+const imgSearchType = '&searchType=image'
 
 //local config
 const dbName = 'imgsearches'
@@ -28,7 +29,7 @@ MongoClient.connect(dbUri, (err,client) => {
 
   app.get('/api/imagesearch/:userQuery', (req,res) => {
 
-    let encodedCseUrl = (cseURL + apiKey + cx + qParam + encodeURIComponent(req.params.userQuery) )
+    let encodedCseUrl = (cseURL + apiKey + cx + imgSearchType + qParam + encodeURIComponent(req.params.userQuery) )
     console.log(encodedCseUrl)
     fetch(encodedCseUrl).then( (response) => {
       return response.json()
