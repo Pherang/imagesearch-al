@@ -19,6 +19,7 @@
   "homepage": "https://github.com/pherang/imagesearch-al#readme",
   "dependencies": {
     "express": "^4.16.3",
-    "mongodb": "^3.0.5"
+    "mongodb": "^3.0.5",
+    "node-fetch": "^2.1.2"
   }
 }
