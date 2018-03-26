@@ -10,7 +10,7 @@ const dbUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/imgsearches'
 // Google CSE requirements
 const apiKey = '?key=AIzaSyCmT28HdQ5rFGu2lmO9NLpcoB_fCf7zJRU'
 const cseURL = 'https://www.googleapis.com/customsearch/v1'
-const cx = '&cx=009512028575894100740:rcixtm-hojw'
+const cx = '&cx=009512028575894100740:rcixtm-hojw' 
 const qParam = '&q='
 const imgSearchType = '&searchType=image'
 const filterFields = '&fields=items(title,link,displayLink,snippet)'
@@ -31,21 +31,27 @@ MongoClient.connect(dbUri, (err,client) => {
   app.get('/api/imagesearch/:userQuery', (req,res) => {
     let abstractList
     let encodedCseUrl = (cseURL + apiKey + cx + imgSearchType + filterFields + qParam +  encodeURIComponent(req.params.userQuery) )
+
     fetch(encodedCseUrl).then( (response) => {
       return response.json()
     }).then((response) => {
-      console.log(response)
-      abstractList = response
-      console.log(abstractList)
-      let answer = JSON.stringify(abstractList, null, 2)
-      console.log(answer)
-      res.set('content-type','text/plain')
+      
+      let answer = JSON.stringify(response, null, 2) // Format the JSON for readability
+      res.set('content-type','text/plain')      // Need to do this as content-type HTML ignores spacing
       res.send(answer) 
-      //res.end(answer)
     }).catch((error) => {
       console.log(error)
+      res.status(500).send('Error, error')
     })
 
+    let newDate = new Date(Date.now())
+
+    searchDate = newDate.toUTCString()
+    let searchRecord = { term: req.params.userQuery,
+                         when: searchDate }
+    console.log(JSON.stringify(searchRecord))
+    // Store the search term in the database
+    db.collection(collection).insertOne(searchRecord)
   })
 
   app.get('/api/latest/imagesearch/', (req,res) => {
