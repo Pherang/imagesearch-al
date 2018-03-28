@@ -28,9 +28,13 @@ MongoClient.connect(dbUri, (err,client) => {
     res.send('<h1>Image Search</h1>')
   })
 
-  app.get('/api/imagesearch/:userQuery', (req,res) => {
-
-  let encodedCseUrl=(cseURL+apiKey+cx+imgSearchType+filterFields+qParam+encodeURIComponent(req.params.userQuery))
+  app.get('/api/imagesearch/:searchTerm', (req,res) => {
+  console.log(req.params)
+  console.log(req.query.offset)
+  console.log(req.path)
+  let offset = '&num=' + (req.query.offset || 10)
+  console.log(offset)  
+  let encodedCseUrl=(cseURL+apiKey+cx+imgSearchType+filterFields+offset+qParam+encodeURIComponent(req.params.searchTerm))
 
     fetch(encodedCseUrl).then( (response) => {
       return response.json()
@@ -47,11 +51,11 @@ MongoClient.connect(dbUri, (err,client) => {
     let newDate = new Date(Date.now())
 
     searchDate = newDate.toUTCString()
-    let searchRecord = { term: req.params.userQuery,
+    let searchRecord = { term: req.params.searchTerm,
                          when: searchDate }
     console.log(JSON.stringify(searchRecord))
     // Store the search term in the database
-    db.collection(collection).insertOne(searchRecord)
+    console.log(db.collection(collection).insertOne(searchRecord))
   })
 
   app.get('/api/latest/imagesearch/', (req,res) => {
@@ -59,8 +63,8 @@ MongoClient.connect(dbUri, (err,client) => {
     async function getLatest() {
 
       let termsList = {}
-      let latestTerms = await db.collection(collection).find().project({ 'term' : 1, 'when': 1, '_id' : 0}).sort({ when: 1}).toArray()
-      
+      let latestTerms = await db.collection(collection).find().project({ 'term' : 1, 'when': 1, '_id' : 0}).toArray()
+      latestTerms.reverse() 
       console.log(latestTerms)  
       //await latestTerms.next()
       //let aTerm = await latestTerms.next()
