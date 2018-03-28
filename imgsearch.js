@@ -16,10 +16,10 @@ const imgSearchType = '&searchType=image'
 const filterFields = '&fields=items(title,link,displayLink,snippet)'
 
 //local config
-const dbName = 'imgsearches'
+//const dbName = 'imgsearches'
 
 //heroku config
-//const dbName = 'heroku_dwmfsp7n'
+const dbName = 'heroku_dwmfsp7n'
 
 MongoClient.connect(dbUri, (err,client) => {
   const db = client.db(dbName)
@@ -38,15 +38,13 @@ MongoClient.connect(dbUri, (err,client) => {
   })
 
   app.get('/api/imagesearch/:searchTerm', (req,res) => {
-  console.log(req.params)
-  console.log(req.query.offset)
-  console.log(req.path)
   let validOffset
+
+  // Google only allows values upto 10.
   if (req.query.offset > 0 && req.query.offset <= 10) {
     validOffset = req.query.offset
   } 
   let offset = '&num=' + (validOffset || 10)
-  console.log(offset)  
   let encodedCseUrl=(cseURL+apiKey+cx+imgSearchType+filterFields+offset+qParam+encodeURIComponent(req.params.searchTerm))
 
     fetch(encodedCseUrl).then( (response) => {
@@ -57,7 +55,6 @@ MongoClient.connect(dbUri, (err,client) => {
       res.set('content-type','text/plain')      // Need to do this as content-type HTML ignores spacing
       res.send(answer) 
     }).catch((error) => {
-      console.log(error)
       res.status(500).send('Error, error')
     })
 
@@ -77,18 +74,13 @@ MongoClient.connect(dbUri, (err,client) => {
 
       let termsList = {}
       let latestTerms = await db.collection(collection).find().project({ 'term' : 1, 'when': 1, '_id' : 0}).toArray()
-      latestTerms.reverse() 
-      console.log(latestTerms)  
-      //await latestTerms.next()
-      //let aTerm = await latestTerms.next()
-      //console.log(aTerm)
+      latestTerms.reverse() // Mongo returns the elements oldest to newest on disk or in natural order as they define it.
       termsList = JSON.stringify(latestTerms, null, 2) 
       res.set('Content-Type','text/plain')
       res.send(termsList)
     }
 
     getLatest().catch( (error) => {
-      console.log(error)
       res.status(500).end()
     })
 
