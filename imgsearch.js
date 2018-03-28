@@ -19,7 +19,7 @@ const filterFields = '&fields=items(title,link,displayLink,snippet)'
 //const dbName = 'imgsearches'
 
 //heroku config
-const dbName = 'heroku_dwmfsp7n'
+const dbName = 'heroku_7dvpd0xv'
 
 MongoClient.connect(dbUri, (err,client) => {
   const db = client.db(dbName)
