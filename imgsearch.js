@@ -29,8 +29,8 @@ MongoClient.connect(dbUri, (err,client) => {
   })
 
   app.get('/api/imagesearch/:userQuery', (req,res) => {
-    let abstractList
-    let encodedCseUrl = (cseURL + apiKey + cx + imgSearchType + filterFields + qParam +  encodeURIComponent(req.params.userQuery) )
+
+  let encodedCseUrl=(cseURL+apiKey+cx+imgSearchType+filterFields+qParam+encodeURIComponent(req.params.userQuery))
 
     fetch(encodedCseUrl).then( (response) => {
       return response.json()
@@ -55,7 +55,26 @@ MongoClient.connect(dbUri, (err,client) => {
   })
 
   app.get('/api/latest/imagesearch/', (req,res) => {
-    res.send('<h2>Latest Searches</h2>')
+   
+    async function getLatest() {
+
+      let termsList = {}
+      let latestTerms = await db.collection(collection).find().project({ 'term' : 1, 'when': 1, '_id' : 0}).sort({ when: 1}).toArray()
+      
+      console.log(latestTerms)  
+      //await latestTerms.next()
+      //let aTerm = await latestTerms.next()
+      //console.log(aTerm)
+      termsList = JSON.stringify(latestTerms, null, 2) 
+      res.set('Content-Type','text/plain')
+      res.send(termsList)
+    }
+
+    getLatest().catch( (error) => {
+      console.log(error)
+      res.status(500).end()
+    })
+
   })
 
   let server = app.listen(appPort, () => {
