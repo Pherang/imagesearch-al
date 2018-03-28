@@ -25,14 +25,27 @@ MongoClient.connect(dbUri, (err,client) => {
   const db = client.db(dbName)
 
   app.get('/', (req,res) => {
-    res.send('<h1>Image Search</h1>')
+    
+    let instructions = {
+      'Searches': 'To search use /api/imagesearch/\'Search terms\' e.g. /api/imagesearch/cats You can add ?offset=x where x is the number of results to a max of 10',
+      'Search History': 'To get the latest terms others have searched use /api/latest/imagesearch/'
+    }
+
+    let prettyInstructions = JSON.stringify(instructions, null, 2)
+
+    res.set('content-type','text/plain')      // Need to do this as content-type HTML ignores spacing
+    res.send(prettyInstructions)
   })
 
   app.get('/api/imagesearch/:searchTerm', (req,res) => {
   console.log(req.params)
   console.log(req.query.offset)
   console.log(req.path)
-  let offset = '&num=' + (req.query.offset || 10)
+  let validOffset
+  if (req.query.offset > 0 && req.query.offset <= 10) {
+    validOffset = req.query.offset
+  } 
+  let offset = '&num=' + (validOffset || 10)
   console.log(offset)  
   let encodedCseUrl=(cseURL+apiKey+cx+imgSearchType+filterFields+offset+qParam+encodeURIComponent(req.params.searchTerm))
 
@@ -50,12 +63,12 @@ MongoClient.connect(dbUri, (err,client) => {
 
     let newDate = new Date(Date.now())
 
-    searchDate = newDate.toUTCString()
+    searchDate = newDate.toUTCString() // Could leave this as time in milliseconds instead and leave it upto consumer to parse it for viewing
     let searchRecord = { term: req.params.searchTerm,
                          when: searchDate }
-    console.log(JSON.stringify(searchRecord))
+    
     // Store the search term in the database
-    console.log(db.collection(collection).insertOne(searchRecord))
+    db.collection(collection).insertOne(searchRecord)
   })
 
   app.get('/api/latest/imagesearch/', (req,res) => {
